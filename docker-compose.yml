@@ -1,0 +1,78 @@
+name: lakehouse
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow:
+    build:
+      context: ./airflow
+    ports:
+      - 8080:8080
+    environment:
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__ENABLE_XCOM_PICKLING=True
+      - AIRFLOW_CREATE_DEFAULT_USER=True
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/utils:/opt/airflow/utils
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+    depends_on:
+      - postgres
+
+  dremio:
+    platform: linux/x86_64
+    image: dremio/dremio-oss:latest
+    ports:
+      - 9047:9047
+      - 31010:31010
+      - 32010:32010
+    container_name: dremio
+    environment:
+    - DREMIO_USER=admin
+    - DREMIO_PASSWORD=admin
+    volumes:
+      - dremio_data:/opt/dremio/data
+
+  minioserver:
+    image: minio/minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    container_name: minioserver
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+
+  nessie:
+    image: projectnessie/nessie
+    container_name: nessie
+    ports:
+      - "19120:19120"
+    volumes:
+      - nessie_data:/var/lib/nessie
+
+networks:
+  default:
+    name: iceberg_env
+    driver: bridge
+
+volumes:
+  postgres_data:
+  dremio_data:
+  minio_data:
+  nessie_data:
