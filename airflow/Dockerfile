@@ -10,6 +10,11 @@ RUN apt-get update \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
+# Create the folders and set the permissions
+RUN mkdir -p /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins \
+  && chmod -R 775 /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins \
+  && chown -R airflow:root /opt/airflow/dags /opt/airflow/logs /opt/airflow/plugins
+
 COPY entrypoint.sh entrypoint.sh
 RUN chmod +x entrypoint.sh
 

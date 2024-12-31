@@ -1,6 +1,6 @@
 # Airflow logs
-logs/*
-!logs/.gitkeep
+logs/
+
 
 # Environment
 .env
