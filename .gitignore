@@ -1,6 +1,5 @@
 # Airflow logs
 logs/
 
-
 # Environment
 .env
